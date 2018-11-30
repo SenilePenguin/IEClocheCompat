@@ -54,17 +54,35 @@ public class CropFormat {
         this.crop = Block.getBlockFromName(crop);
     }
 
-    private static ItemStack seed;
-    private static ItemStack[] output;
-    private static ItemStack soil;
-    private static Block crop;
+    public boolean isConditionValid() {
+        return condition;
+    }
+
+    public CropFormat setCondition(boolean condition) {
+        this.condition = condition;
+        return this;
+    }
+
+    private ItemStack seed;
+    private ItemStack[] output;
+    private ItemStack soil;
+    private Block crop;
+    private boolean condition = true;
 
     public CropFormat(String seedItemStack, String[] outputItemStack, String soilItemStack, String cropBlock) {
         this.seed = ConvertUtils.getItemStackFromStringClean(seedItemStack);
         this.output = ConvertUtils.StringArrayToItemStackArray(outputItemStack);
-        this.soil = ConvertUtils.getItemStackFromString(soilItemStack);
+        this.soil = ConvertUtils.getItemStackFromString(soilItemStack, false);
         this.crop = Block.getBlockFromName(cropBlock);
     }
 
-    public static class ConvertUtils extends com.nicjames2378.IEClocheCompat.utils.ConversionUtils {} //Makes calling the utils easier from the users of the API
+    public CropFormat(String seedItemStack, String outputItemStack, String soilItemStack, String cropBlock) {
+        this.seed = ConvertUtils.getItemStackFromStringClean(seedItemStack);
+        this.output = new ItemStack[]{ConvertUtils.getItemStackFromString(outputItemStack, false)};
+        this.soil = ConvertUtils.getItemStackFromString(soilItemStack, false);
+        this.crop = Block.getBlockFromName(cropBlock);
+    }
+
+    public static class ConvertUtils extends com.nicjames2378.IEClocheCompat.utils.ConversionUtils {
+    } // Makes ConversionUtils available to public through the API in case anyone wants to use it.
 }

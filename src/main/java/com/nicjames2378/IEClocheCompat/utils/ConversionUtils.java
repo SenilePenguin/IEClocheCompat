@@ -15,12 +15,15 @@ public class ConversionUtils {
 
         ArrayList<ItemStack> lst = new ArrayList<>();
         for (String str : input) {
-            lst.add(getItemStackFromString(str));
+            lst.add(getItemStackFromString(str, false));
         }
         return lst.toArray(new ItemStack[0]);
     }
 
-    public static ItemStack getItemStackFromString(String input) {
+    public static ItemStack getItemStackFromString(String input, boolean makeClean) {
+        // Clean version returns a generic stack without amount or metadata.
+        // Format is ##*modid:itemid@meta#
+        // Example: A stack of
         int amount = 1;
         String item;
         int meta = 0;
@@ -37,6 +40,7 @@ public class ConversionUtils {
             input = ss[0];
         }
         item = input;
+
 
         return new ItemStack(Item.getByNameOrId(item), amount, meta);
     }
