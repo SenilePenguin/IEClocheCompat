@@ -18,6 +18,7 @@ public class Recipes {
 
     private static void registerMysticalAgradditionsCompat() {
         String p = "mysticalagradditions:";
+
         CropFormat[] newCrops = new CropFormat[]{
                 new CropFormat(p + "nether_star_seeds", p + "nether_star_essence", p + "special=0", p + "nether_star_crop"),
                 new CropFormat(p + "dragon_egg_seeds", p + "dragon_egg_essence", p + "special=1", p + "dragon_egg_crop"),

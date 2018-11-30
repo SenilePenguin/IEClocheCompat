@@ -9,5 +9,5 @@ public class Reference {
     public static final String DEPENDENCIES = "required-after:immersiveengineering";
     public static final String COMMON_PROXY_CLASS = "com.nicjames2378.IEClocheCompat.proxy.CommonProxy";
     public static final String CLIENT_PROXY_CLASS = "com.nicjames2378.IEClocheCompat.proxy.ClientProxy";
-    public static final String UPDATE_CHECK_URL = "https://raw.githubusercontent.com/NicJames2378/IEClocheCompat/master/updater.json";
+    public static final String UPDATE_CHECK_URL = "https://raw.githubusercontent.com/NicJames2378/IEClocheCompat/master/src/main/resources/mcmod.info";
 }
