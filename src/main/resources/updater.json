@@ -1,10 +1,9 @@
 {
   "homepage": "https://minecraft.curseforge.com/projects/ie-cloche-compat",
   "1.12.2": {
-	"2.0.2": "Changelogs available on Homepage",
+    "2.0.2": "Changelogs available on Homepage",
     "2.0.1": "Changelogs available on Homepage"
   },
-  
   "promos": {
     "1.12.2-latest": "2.0.2",
     "1.12.2-recommended": "2.0.2"
