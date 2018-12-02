@@ -1,3 +1,6 @@
+import java.util.regex.Matcher
+import java.util.regex.Pattern
+
 buildscript {
     repositories {
         jcenter()
@@ -10,27 +13,19 @@ buildscript {
 apply plugin: 'net.minecraftforge.gradle.forge'
 //Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
 
-
-version = "2.0.2"
+//version = "2.0.3"
 group = "com.nicjames2378.IEClocheCompat" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "ieclochecompat"
 
 sourceCompatibility = targetCompatibility = '1.8' // Need this here so eclipse task generates correctly.
-compileJava {
-    sourceCompatibility = targetCompatibility = '1.8'
-}
 
-minecraft {
-    version = "1.12.2-14.23.2.2611"
-    runDir = "run"
-    
-    // the mappings can be changed at any time, and must be in the following format.
-    // snapshot_YYYYMMDD   snapshot are built nightly.
-    // stable_#            stables are built at the discretion of the MCP team.
-    // Use non-default mappings at your own risk. they may not always work.
-    // simply re-run your setup task after changing the mappings to update your workspace.
-    mappings = "snapshot_20171003"
-    // makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+ext.configFile = file "build.properties"
+
+configFile.withReader {
+    // Load config. It shall from now be referenced as simply config or project.config
+    def prop = new Properties()
+    prop.load(it)
+    project.ext.config = new ConfigSlurper().parse prop
 }
 
 dependencies {
@@ -38,9 +33,9 @@ dependencies {
     // or you may define them like so..
     //compile "some.group:artifact:version:classifier"
     //compile "some.group:artifact:version"
-      
-	compile files("libs/ImmersiveEngineering-0.12-76.jar")
-	
+
+    compile files("libs/ImmersiveEngineering-0.12-76.jar")
+
     // real examples
     //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
     //compile 'com.googlecode.efficient-java-matrix-library:ejml:0.24' // adds ejml to the dev env
@@ -58,22 +53,162 @@ dependencies {
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
 }
 
+if (project.config.verbose.toBoolean()) {
+    println ""
+    println ""
+    println "VERBOSE: Starting extra build sequence."
+}
+version = getBuildVersion()
+setVersionInReferenceJava()
+setVersionInBuildProperties()
+if (project.config.verbose.toBoolean()) {
+    println "VERBOSE: Finishing extra build sequence."
+    println ""
+    println ""
+}
+
+println "Starting build of ${archivesBaseName}. Version: ${version}"
+println "Using Forge ${config.forge_version}, for Minecraft ${config.mc_version}"
+
+minecraft {
+    version = config.mc_version + "-" + config.forge_version
+    // the mappings can be changed at any time, and must be in the following format.
+    // snapshot_YYYYMMDD   snapshot are built nightly.
+    // stable_#            stables are built at the discretion of the MCP team.
+    // Use non-default mappings at your own risk. they may not always work.
+    // simply re-run your setup task after changing the mappings to update your workspace.
+    mappings = "snapshot_20171003"
+
+    runDir = "run"
+    replace '${mod_version}', project.config.mod_version
+    makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+}
+
 processResources {
     // this will ensure that this task is redone when the versions change.
     inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
+    inputs.property "mc_version", project.config.mc_version
 
-    // replace stuff in mcmod.info, nothing else
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
-        include 'Reference.java'
-		
-        // replace version and mcversion
-        expand 'version':project.version, 'mcversion':project.minecraft.version
+        expand 'version': project.version, 'mc_version': project.config.mc_version
     }
-        
-    // copy everything else except the mcmod.info
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
+}
+
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+
+def sayVerbose(String text) {
+    if (project.config.verbose.toBoolean()) {
+        println("VERBOSE: " + text)
     }
+}
+
+def getBuildVersion() {
+    Matcher matchChecker
+    def returnVersion = project.config.mod_version
+    sayVerbose("Versioning Started. Current version: " + project.config.mod_version.toString())
+
+    String major = ""
+    String minor = ""
+    String patch = ""
+    String dev = ""
+
+    sayVerbose("Checking first three segments of version.")
+    def pattern = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+.*)") // #.#.#-> (through end of line)
+    matchChecker = pattern.matcher(project.config.mod_version.toString())
+
+    if (!matchChecker.matches()) {
+        println "A version could not be found or is not specified. Please ensure the correct 'build.properties' file is selected and that the 'mod_version' is in the '#.#.#' format (optional '-dev.#')."
+    }
+
+    major = matchChecker.group(1)
+    sayVerbose("Section 1: " + major)
+    minor = matchChecker.group(2)
+    sayVerbose("Section 2: " + minor)
+    patch = matchChecker.group(3)
+    sayVerbose("Section 3: " + patch)
+
+    pattern = Pattern.compile("(\\d+)\\" + "-(\\w+).(\\d+)")
+    //#-dev.## (the '+' operation is to correct regex redundant escape character warning caused by the hyphen
+    matchChecker = pattern.matcher(matchChecker.group(3))
+
+    if (matchChecker.matches()) { //if patch version has dev info
+        sayVerbose("Section 3 has dev information. Dev version: " + matchChecker.group(3))
+        patch = matchChecker.group(1) //patch is just first part
+        dev = matchChecker.group(3) //and dev version is 3rd
+    } else {
+        sayVerbose("Section 3 does not have dev information.")
+    }
+
+    if (project.config.isDev.toBoolean()) {
+        sayVerbose("Properties 'inDev' mode enabled.")
+        if (!matchChecker.matches()) {
+            sayVerbose("Previous dev version was not detected. Making this version dev.1")
+            dev = 1
+        } else {
+            sayVerbose("Previous dev version was detected. Dev version changing from " + dev + " to " + (dev.toInteger() + 1))
+            dev = (dev.toInteger() + 1)
+        }
+        returnVersion = (major + "." + minor + "." + patch + "-dev." + dev)
+    } else {
+        sayVerbose("Config is not in dev mode. Patch version changing from " + patch + " to " + (patch.toInteger() + 1))
+        patch = (patch.toInteger() + 1)
+        returnVersion = (major + "." + minor + "." + patch)
+    }
+
+    sayVerbose("Versioning Finished. New version: " + returnVersion)
+    return returnVersion
+}
+
+def setVersionInBuildProperties() {
+    String fileDir = "build.properties"
+    def file = file(fileDir)
+    def pattern = Pattern.compile("^mod_version=(.*+)")
+
+    def newLines = []
+    file.eachLine { String s ->
+        String line = s
+        def matcher = pattern.matcher(s)
+        if (matcher.matches()) {
+            sayVerbose("Found 'mod_version' line in build.properties. Updating string!")
+            line = line.replace(matcher.group(1), version.toString())
+        }
+        newLines.add(line)
+    }
+
+    new File(fileDir).withWriter { out ->
+        newLines.each {
+            out.println it
+        }
+    }
+
+    return 0
+}
+
+def setVersionInReferenceJava() {
+    String fileDir = "src/main/java/com/nicjames2378/IEClocheCompat/utils/Reference.java"
+    def file = file(fileDir)
+    def pattern = Pattern.compile("^ {4}public static final String VERSION = \"(\\d.*)\";\$")
+//("^ {4}public static final String VERSION = \"([\\d\\.]*)\";\$")
+
+    def newLines = []
+    file.eachLine { String s ->
+        String line = s
+        def matcher = pattern.matcher(s)
+        if (matcher.matches()) {
+            line = line.replace(matcher.group(1), "${version}")
+            sayVerbose("Found 'VERSION' line in Reference.java. Updating string!")
+        }
+        newLines.add(line)
+    }
+
+    new File(fileDir).withWriter { out ->
+        newLines.each {
+            out.println it
+        }
+    }
+
+    return 0
 }
