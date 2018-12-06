@@ -2,7 +2,7 @@
 {
   "modid": "ieclochecompat",
   "name": "IE Cloche Compat",
-  "description": "Implements compatibility for other mods in the Immersive Engineering Garden Cloche. \n\nThe Garden Cloches are used the same as with standard crops. New crops can be added through the configs, where you can specify new crops, outputs, and soils.",
+  "description": "Implements compatibility for other mods in the Immersive Engineering Garden Cloche. \n\nThe Garden Cloches are used the same as with standard crops.",
   "version": "${version}",
   "mcversion": "${mc_version}",
   "url": "",

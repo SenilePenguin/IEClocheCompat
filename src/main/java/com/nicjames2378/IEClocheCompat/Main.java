@@ -1,5 +1,6 @@
 package com.nicjames2378.IEClocheCompat;
 
+import com.nicjames2378.IEClocheCompat.config.Configurator;
 import com.nicjames2378.IEClocheCompat.proxy.CommonProxy;
 import com.nicjames2378.IEClocheCompat.utils.Reference;
 import net.minecraftforge.fml.common.Mod;
@@ -11,7 +12,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = Reference.MOD_ID, name = Reference.NAME, version = Reference.VERSION, dependencies = Reference.DEPENDENCIES, updateJSON = Reference.UPDATE_CHECK_URL)
+@Mod(modid = Reference.MOD_ID, name = Reference.NAME, version = Reference.VERSION, dependencies = Reference.DEPENDENCIES, updateJSON = Reference.UPDATE_CHECK_URL, guiFactory = Reference.GUI_FACTORY)
 public class Main {
 
     public static final Logger log = LogManager.getLogger(Reference.MOD_ID);

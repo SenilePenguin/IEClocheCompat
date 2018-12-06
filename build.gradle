@@ -149,11 +149,12 @@ def getBuildVersion() {
             dev = 1
         } else {
             sayVerbose("Previous dev version was detected. Dev version changing from " + dev + " to " + (dev.toInteger() + 1))
-            dev = (dev.toInteger() + 1)
+            String newDev = (dev.toInteger() + 1)
+            dev = newDev
         }
         returnVersion = (major + "." + minor + "." + patch + "-dev." + dev)
     } else {
-        sayVerbose("Config is not in dev mode. Patch version changing from " + patch + " to " + (patch.toInteger() + 1))
+        sayVerbose("config is not in dev mode. Patch version changing from " + patch + " to " + (patch.toInteger() + 1))
         patch = (patch.toInteger() + 1)
         returnVersion = (major + "." + minor + "." + patch)
     }
