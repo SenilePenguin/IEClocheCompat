@@ -1,6 +1,7 @@
 package com.nicjames2378.IEClocheCompat.recipes;
 
 import com.nicjames2378.IEClocheCompat.api.CropFormat;
+import com.nicjames2378.IEClocheCompat.api.FertilizerFormat;
 import com.nicjames2378.IEClocheCompat.api.IEClocheCompat;
 import com.nicjames2378.IEClocheCompat.utils.ModChecker;
 
@@ -27,6 +28,8 @@ public class Recipes {
         };
 
         IEClocheCompat.registerAllCrops(newCrops);
+
+        IEClocheCompat.registerFertilizer(new FertilizerFormat("mysticalagriculture:mystical_fertilizer", 1.65f));
     }
 
     private static void registerMagicalCropsCompat() {

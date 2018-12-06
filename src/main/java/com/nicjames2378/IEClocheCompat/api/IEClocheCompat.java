@@ -45,4 +45,40 @@ public class IEClocheCompat {
         }
         return results;
     }
+
+    public static boolean registerFertilizer(ItemStack fertilizer, float growthMultiplier, boolean condition) {
+        if (condition) {
+            try {
+                BelljarHandler.registerBasicItemFertilizer(fertilizer, growthMultiplier);
+
+                Main.log.info(String.format("Registering fertilizer '%1$s', with growth multiplier of '%2$s'",
+                        fertilizer.getItem().getRegistryName(), growthMultiplier));
+                Main.log.info("-------------------------------");
+                return true;
+            } catch (Exception e) {
+                Main.log.error(String.format("Error registering fertilizer '%1$s'. Skipping!", fertilizer.getItem().getRegistryName()));
+                Main.log.error(e);
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public static boolean registerFertilizer(FertilizerFormat newFertilizer) {
+        ItemStack fertilizer = newFertilizer.getFertilizer();
+        float growthMultiplier = newFertilizer.getGrowthMultiplier();
+        boolean condition = newFertilizer.isConditionValid();
+
+        return IEClocheCompat.registerFertilizer(fertilizer, growthMultiplier, condition);
+    }
+
+    public static boolean[] registerAllFertilizers(FertilizerFormat[] newFertilizers) {
+        boolean[] results = new boolean[newFertilizers.length];
+        int current = 0;
+
+        for (FertilizerFormat newFertilizer : newFertilizers) {
+            results[current] = registerFertilizer(newFertilizer);
+        }
+        return results;
+    }
 }

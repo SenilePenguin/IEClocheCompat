@@ -5,49 +5,32 @@ import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 
 public class CropFormat {
-
     public ItemStack getSeed() {
         return seed;
-    }
-
-    public ItemStack[] getOutputs() {
-        return output;
-    }
-
-    public ItemStack getSoil() {
-        return soil;
-    }
-
-    public Block getCrop() {
-        return crop;
-    }
-
-    public String getSeedAsString() {
-        return seed.getItem().getRegistryName().toString();
-    }
-
-    public String getOutputsAsString() {
-        return ConversionUtils.ItemStackArrayToString(output);
-    }
-
-    public String getSoilAsString() {
-        return soil.getItem().getRegistryName().toString();
-    }
-
-    public String getCropAsString() {
-        return crop.getRegistryName().toString();
     }
 
     public void setSeed(String seed) {
         this.seed = ConversionUtils.getItemStackFromStringClean(seed);
     }
 
-    public void setOutput(String[] output) {
+    public ItemStack[] getOutputs() {
+        return output;
+    }
+
+    public void setOutputs(String[] output) {
         this.output = ConversionUtils.StringArrayToItemStackArray(output);
+    }
+
+    public ItemStack getSoil() {
+        return soil;
     }
 
     public void setSoil(String soil) {
         this.soil = ConversionUtils.getItemStackFromStringClean(soil);
+    }
+
+    public Block getCrop() {
+        return crop;
     }
 
     public void setCrop(String crop) {
@@ -69,6 +52,22 @@ public class CropFormat {
     private Block crop;
     private boolean condition = true;
 
+    public CropFormat(ItemStack seed, ItemStack[] output, ItemStack soil, Block crop, boolean condition) {
+        this.seed = seed;
+        this.output = output;
+        this.soil = soil;
+        this.crop = crop;
+        this.condition = condition;
+    }
+
+    public CropFormat(ItemStack seed, ItemStack output, ItemStack soil, Block crop, boolean condition) {
+        this.seed = seed;
+        this.output = new ItemStack[]{output};
+        this.soil = soil;
+        this.crop = crop;
+        this.condition = condition;
+    }
+
     public CropFormat(String seedItemStack, String[] outputItemStack, String soilItemStack, String cropBlock) {
         this.seed = ConvertUtils.getItemStackFromStringClean(seedItemStack);
         this.output = ConvertUtils.StringArrayToItemStackArray(outputItemStack);
@@ -84,5 +83,5 @@ public class CropFormat {
     }
 
     public static class ConvertUtils extends com.nicjames2378.IEClocheCompat.utils.ConversionUtils {
-    } // Makes ConversionUtils available to public through the API in case anyone wants to use it.
+    } // Makes ConversionUtils easier to access from the API (removes the need for an extra import)
 }

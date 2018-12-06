@@ -1,13 +1,14 @@
 {
   "homepage": "https://minecraft.curseforge.com/projects/ie-cloche-compat",
   "1.12.2": {
+    "2.0.5": "Added fertilizer support; code refactorization",
     "2.0.4": "Gradle Integration, Optimizations, and Clean-up",
     "2.0.3": "Implemented Updater",
     "2.0.2": "Added Magical Crops support",
     "2.0.1": "Initial Release"
   },
   "promos": {
-    "1.12.2-latest": "2.0.4",
-    "1.12.2-recommended": "2.0.4"
+    "1.12.2-latest": "2.0.5",
+    "1.12.2-recommended": "2.0.5"
   }
 }
