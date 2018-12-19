@@ -1,8 +1,9 @@
 package com.nicjames2378.IEClocheCompat.recipes;
 
-import com.nicjames2378.IEClocheCompat.api.CropFormat;
-import com.nicjames2378.IEClocheCompat.api.FertilizerFormat;
-import com.nicjames2378.IEClocheCompat.api.IEClocheCompat;
+import com.nicjames2378.IEClocheCompat.CRUD.IEClocheCompat;
+import com.nicjames2378.IEClocheCompat.CRUD.compats.compAgricraft;
+import com.nicjames2378.IEClocheCompat.CRUD.formats.CropFormat;
+import com.nicjames2378.IEClocheCompat.CRUD.formats.FertilizerFormat;
 import com.nicjames2378.IEClocheCompat.config.Configurator;
 import com.nicjames2378.IEClocheCompat.utils.ModChecker;
 
@@ -15,6 +16,10 @@ public class Recipes {
 
         if (ModChecker.MAGICAL_CROPS && Configurator.integrationMagicalCrops) {
             registerMagicalCropsCompat();
+        }
+
+        if (ModChecker.AGRICRAFT && Configurator.integrationAgricraft) {
+            compAgricraft.initialize();
         }
     }
 
@@ -30,13 +35,13 @@ public class Recipes {
 
         IEClocheCompat.registerAllCrops(newCrops);
 
-        if (Configurator.integrationMysticalAgraditions) {
+        if (Configurator.integrationMysticalAgriculture) {
             registerMysticalAgricultureCompat();
         }
     }
 
     private static void registerMysticalAgricultureCompat() {
-        IEClocheCompat.registerFertilizer(new FertilizerFormat("mysticalagriculture:mystical_fertilizer", 1.65f).setCondition(Configurator.fertMysticalAgricultureMysticalFertilizer));
+        IEClocheCompat.registerFertilizer(new FertilizerFormat("mysticalagriculture:mystical_fertilizer", Configurator.fertMysticalAgricultureMysticalFertilizerStrength).setCondition(Configurator.fertMysticalAgricultureMysticalFertilizer));
     }
 
     private static void registerMagicalCropsCompat() {

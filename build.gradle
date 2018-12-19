@@ -35,6 +35,7 @@ dependencies {
     //compile "some.group:artifact:version"
 
     compile files("libs/ImmersiveEngineering-0.12-76.jar")
+    compile files("libs/AgriCraft-2.12.0-1.12.0-a6.jar")
 
     // real examples
     //compile 'com.mod-buildcraft:buildcraft:6.0.8:dev'  // adds buildcraft to the dev env
@@ -81,7 +82,7 @@ minecraft {
 
     runDir = "run"
     replace '${mod_version}', project.config.mod_version
-    makeObfSourceJar = false // an Srg named sources jar is made by default. uncomment this to disable.
+    makeObfSourceJar = true // an Srg named sources jar is made by default. uncomment this to disable.
 }
 
 processResources {

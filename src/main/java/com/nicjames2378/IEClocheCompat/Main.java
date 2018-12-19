@@ -1,6 +1,5 @@
 package com.nicjames2378.IEClocheCompat;
 
-import com.nicjames2378.IEClocheCompat.config.Configurator;
 import com.nicjames2378.IEClocheCompat.proxy.CommonProxy;
 import com.nicjames2378.IEClocheCompat.utils.Reference;
 import net.minecraftforge.fml.common.Mod;

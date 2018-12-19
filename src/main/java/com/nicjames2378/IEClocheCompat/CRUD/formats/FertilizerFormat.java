@@ -1,4 +1,4 @@
-package com.nicjames2378.IEClocheCompat.api;
+package com.nicjames2378.IEClocheCompat.CRUD.formats;
 
 import net.minecraft.item.ItemStack;
 

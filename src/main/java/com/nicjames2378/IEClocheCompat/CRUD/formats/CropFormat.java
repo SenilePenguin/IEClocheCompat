@@ -1,4 +1,4 @@
-package com.nicjames2378.IEClocheCompat.api;
+package com.nicjames2378.IEClocheCompat.CRUD.formats;
 
 import com.nicjames2378.IEClocheCompat.utils.ConversionUtils;
 import net.minecraft.block.Block;
@@ -66,6 +66,13 @@ public class CropFormat {
         this.soil = soil;
         this.crop = crop;
         this.condition = condition;
+    }
+
+    public CropFormat(ItemStack seed, String outputItemStack, String soilItemStack, String cropBlock) {
+        this.seed = seed;
+        this.output = new ItemStack[]{ConvertUtils.getItemStackFromString(outputItemStack, false)};
+        this.soil = ConvertUtils.getItemStackFromString(soilItemStack, false);
+        this.crop = Block.getBlockFromName(cropBlock);
     }
 
     public CropFormat(String seedItemStack, String[] outputItemStack, String soilItemStack, String cropBlock) {

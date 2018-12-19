@@ -1,6 +1,5 @@
 package com.nicjames2378.IEClocheCompat.config;
 
-import com.nicjames2378.IEClocheCompat.Main;
 import com.nicjames2378.IEClocheCompat.utils.Reference;
 import net.minecraftforge.common.config.Configuration;
 import net.minecraftforge.fml.client.event.ConfigChangedEvent;
@@ -9,10 +8,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import java.io.File;
 
 public class Configurator {
-
-
     public static Configuration config;
-    public static Configurator instance;
 
     // Increment this is config changes make it non-backwards compatible
     public static int version = 1;
@@ -20,6 +16,7 @@ public class Configurator {
     public static boolean integrationMagicalCrops;
     public static boolean integrationMysticalAgraditions;
     public static boolean integrationMysticalAgriculture;
+    public static boolean integrationAgricraft;
 
     public static boolean seedMagicalCrops_air;
     public static boolean seedMagicalCrops_coal;
@@ -47,6 +44,11 @@ public class Configurator {
     public static boolean seedMysticalAgradditionsAwakenedDraconium;
 
     public static boolean fertMysticalAgricultureMysticalFertilizer;
+    public static float fertMysticalAgricultureMysticalFertilizerStrength;
+
+    public static float seedAgricraftStrengthModifier;
+    public static String seedAgricraftListType;
+    public static String[] seedAgricraftList;
 
     @SubscribeEvent
     public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent eventArgs) {
@@ -74,6 +76,7 @@ public class Configurator {
         integrationMagicalCrops = config.getBoolean("magical_crops_integration", category, true, "Magical Crops Integrations enabled?");
         integrationMysticalAgraditions = config.getBoolean("mystical_agradditions_integration", category, true, "Mystical Agradditions Integrations enabled?");
         integrationMysticalAgriculture = config.getBoolean("mystical_agriculture_integration", category, true, "Mystical Agriculture Integrations enabled?");
+        integrationAgricraft = config.getBoolean("agricraft_integration", category, true, "Agricraft Integrations enabled?");
 
         category = "magical crops";
         config.addCustomCategoryComment(category, "Enable or disable specific compatibilities with Garden Cloches."
@@ -110,7 +113,14 @@ public class Configurator {
         config.addCustomCategoryComment(category, "Enable or disable specific compatibilities with Garden Cloches."
                 + "\nThese settings have no effect is the mod's integration is disabled in the global section.");
         fertMysticalAgricultureMysticalFertilizer = config.getBoolean("mystical_fertilizer", category, true, "Mystical Agriculture mystical fertilizer enabled?");
+        fertMysticalAgricultureMysticalFertilizerStrength = config.getFloat("mystical_fertilizer_strength", category, 1.65f, 0f, 5f, "Mystical Agriculture mystical fertilizer strength. (Note: Bonemeal defaults to 1.25)");
 
+        category = "agricraft";
+        config.addCustomCategoryComment(category, "Enable or disable specific compatibilities with Garden Cloches."
+                + "\nThese settings have no effect is the mod's integration is disabled in the global section.");
+        seedAgricraftStrengthModifier = config.getFloat("agricraft_strength_modifier", category, 0.15f, 0, 1, "How much the Agri-Crop's growth value influences it's growth speed in the garden cloche. \nHigher values mean more speed boost. Setting to 0 effectively disables. \nFormula for the math-y people: (.003125 * (FERTILIZER + ((THIS * SEED_GROWTH_LEVEL) - THIS)))");
+        seedAgricraftListType = config.getString("agricraft_list_type", category, "BLACK", "Whether the list should be a whitelist or a blacklist. A whitelist requires a crop to be listed, while a blacklist explicitly checks that it is NOT listed. \nAccepted values: WHITE, BLACK", new String[]{"WHITE", "BLACK"});
+        seedAgricraftList = config.getStringList("agricraft_list", category, new String[]{}, "Agricraft crops that will not be integrated. \nFilter uses the plant's ID in Agricraft's json configs. Use an asterisk (*) after the colon to disable all seeds from the category. \nExample: Disable Pumpkin = \"vanilla:pumpkin_plant\" \nExample: Disable all resource crops = \"resource:*\"");
 
         if (config.hasChanged()) {
             config.save();

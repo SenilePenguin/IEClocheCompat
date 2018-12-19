@@ -1,6 +1,7 @@
 {
   "homepage": "https://minecraft.curseforge.com/projects/ie-cloche-compat",
   "1.12.2": {
+    "2.1.7": "API Changes; Implemented Agricraft compat; Fixed Bug with Mystical Agriculture Configs; Updated Forge",
     "2.0.6": "Implemented Config file to dis/enable everything in the mod",
     "2.0.5": "Added fertilizer support; code refactorization",
     "2.0.4": "Gradle Integration, Optimizations, and Clean-up",
@@ -9,7 +10,7 @@
     "2.0.1": "Initial Release"
   },
   "promos": {
-    "1.12.2-latest": "2.0.6",
-    "1.12.2-recommended": "2.0.6"
+    "1.12.2-latest": "2.1.7",
+    "1.12.2-recommended": "2.1.7"
   }
 }
