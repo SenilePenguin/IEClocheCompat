@@ -34,7 +34,7 @@ dependencies {
     //compile "some.group:artifact:version:classifier"
     //compile "some.group:artifact:version"
 
-    compile files("libs/ImmersiveEngineering-0.12-76.jar")
+    compile files("libs/ImmersiveEngineering-0.12-88.jar")
     compile files("libs/AgriCraft-2.12.0-1.12.0-a6.jar")
 
     // real examples
