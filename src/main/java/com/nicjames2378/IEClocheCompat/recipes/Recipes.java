@@ -4,6 +4,7 @@ import com.nicjames2378.IEClocheCompat.CRUD.IEClocheCompat;
 import com.nicjames2378.IEClocheCompat.CRUD.compats.AgriCraft.AgriClocheCompat;
 import com.nicjames2378.IEClocheCompat.CRUD.formats.CropFormat;
 import com.nicjames2378.IEClocheCompat.CRUD.formats.FertilizerFormat;
+import com.nicjames2378.IEClocheCompat.Main;
 import com.nicjames2378.IEClocheCompat.config.Configurator;
 import com.nicjames2378.IEClocheCompat.utils.ModChecker;
 
@@ -12,14 +13,17 @@ public class Recipes {
     public static void initialize() {
         //Have to do Agricraft compat first to prevent issues with mystical agradditions?
         if (ModChecker.AGRICRAFT && Configurator.integrationAgricraft) {
+            Main.log.info("Beginning AGRICRAFT registry");
             AgriClocheCompat.initialize();
         }
 
         if (ModChecker.MYSTICAL_AGGRADITIONS && Configurator.integrationMysticalAgraditions) {
+            Main.log.info("Beginning MYSTICAL_AGGRADITIONS registry");
             registerMysticalAgradditionsCompat();
         }
 
         if (ModChecker.MAGICAL_CROPS && Configurator.integrationMagicalCrops) {
+            Main.log.info("Beginning MAGICAL_CROPS registry");
             registerMagicalCropsCompat();
         }
     }

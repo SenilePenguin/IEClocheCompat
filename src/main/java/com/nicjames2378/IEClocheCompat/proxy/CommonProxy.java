@@ -20,9 +20,9 @@ public class CommonProxy {
     }
 
     public void Init(FMLInitializationEvent event) {
+        Recipes.initialize();
     }
 
     public void PostInit(FMLPostInitializationEvent event) {
-        Recipes.initialize();
     }
 }

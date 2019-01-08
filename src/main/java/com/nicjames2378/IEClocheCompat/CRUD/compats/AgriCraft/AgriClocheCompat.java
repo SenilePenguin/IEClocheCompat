@@ -1,7 +1,6 @@
 package com.nicjames2378.IEClocheCompat.CRUD.compats.AgriCraft;
 
 import blusunrize.immersiveengineering.api.tool.BelljarHandler;
-import blusunrize.immersiveengineering.common.items.ItemIESeed;
 import blusunrize.immersiveengineering.common.items.ItemMaterial;
 import com.infinityraider.agricraft.api.v1.AgriApi;
 import com.infinityraider.agricraft.api.v1.plant.IAgriPlant;
@@ -157,6 +156,7 @@ public class AgriClocheCompat {
             return retVal.toArray(new ItemStack[0]);
         }
 
+        @SideOnly(Side.CLIENT)
         @Override
         public boolean overrideRender(ItemStack seed, ItemStack soil, float growth, TileEntity tile, BlockRendererDispatcher blockRenderer) {
             boolean DEBUG = false;
@@ -264,7 +264,7 @@ public class AgriClocheCompat {
                     agriPlant.getPlantName(),
                     (Configurator.verboseDebugging ? agriPlant.getPrimaryPlantTexture(1) : agriPlant.getId()),
                     ConversionUtils.ItemStackArrayToString(getPlantOutputs(agriPlant, true)),
-                    ConversionUtils.ItemStackArrayToString(getPlantSoils(agriPlant, true))));
+                    ConversionUtils.ItemStackArrayToString(getPlantSoils(agriPlant, false))));
 
             plantMap.put(new SeedAgriItem(seed), agriPlant);
 
@@ -278,6 +278,14 @@ public class AgriClocheCompat {
             agricraft:blocks/crop_niccissus1
             immersiveengineering:blocks/hemp_b0
              */
+
+
+            //if agriplant ID contains each mod name, render special (these are just textures. make sure not to use on server side.
+            //      myst agric uses crop 0-4 and the ID_crop
+            //      agricraft uses crop_ID 0-4 (special!)
+            //      immersive engineering ..... works? O.o
+
+
             try {
                 renderMap.put(agriPlant, new IBlockState[]{
                         Block.getBlockFromName(agriPlant.getId().replace("plant", "crop")).getDefaultState()
@@ -288,16 +296,12 @@ public class AgriClocheCompat {
                         Blocks.ANVIL.getDefaultState()
                 });
             }
-            Main.log.info("-------------------------------");
         }
 
         public boolean testChanceIn(int percentChance, int outOf) {
             Random r = new Random();
             // gives us an X in outOf chance, inclusive to both ends.
-            if (r.nextInt(outOf + 1) + 1 <= percentChance) {
-                return true;
-            }
-            return false;
+            return r.nextInt(outOf + 1) + 1 <= percentChance;
         }
 
         private int getGainYield(int gainValue) {
@@ -317,6 +321,7 @@ public class AgriClocheCompat {
     };
 
     public static void initialize() {
+        Main.log.info("-------------------------------");
         filterList = new ArrayList<>(Arrays.asList(Configurator.statAgricraftList));
         BelljarHandler.registerHandler(agricraftHandler);
         for (IAgriPlant plant : AgriApi.getPlantRegistry().all()) {
@@ -324,6 +329,7 @@ public class AgriClocheCompat {
                 agricraftHandler.register(plant);
             }
         }
+        Main.log.info("-------------------------------");
     }
 
     private static ItemStack[] getPlantOutputs(IAgriPlant agriPlant, boolean showDebug) {
@@ -339,13 +345,12 @@ public class AgriClocheCompat {
     private static ItemStack[] getPlantSoils(IAgriPlant agriPlant, boolean showDebug) {
         ArrayList<ItemStack> soils = new ArrayList<>();
 
-
         for (IAgriSoil soil : agriPlant.getGrowthRequirement().getSoils()) {
             if (showDebug) {
                 Main.log.info("getPlantSoils Debug: " + soil.getName() + ", " + new ItemStack(Item.getByNameOrId(soil.getName())).getItem().getRegistryName());
             }
 
-            Block soilBlock = Block.getBlockFromName(soil.getName()) != null ? Block.getBlockFromName(soil.getName()) : Blocks.COMMAND_BLOCK; //Try to get the stack from the name
+            Block soilBlock = Block.getBlockFromName(soil.getName()) != null ? Block.getBlockFromName(soil.getName()) : Blocks.COMMAND_BLOCK; //Try to get the stack from the name; Use unobtainable item that stands out if fails
             ItemStack soilStack = new ItemStack(soilBlock);
             ItemStack addMe = soilStack;
             switch (soil.getName().toLowerCase()) { //Special Exceptions from when the stack consists of certain items that don't register properly
