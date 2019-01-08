@@ -256,15 +256,15 @@ public class AgriClocheCompat {
         }
 
         public void register(IAgriPlant agriPlant) {
-            boolean DEBUG = true;
-
             ItemStack seed = agriPlant.getSeed();
 
-            Main.log.info(String.format("Agricraft Compat - Registering IAgriPlant '%1$s' (%2$s)), with output '%3$s', with soil '%4$s'",
+            Main.log.info(String.format("Agricraft Compat - Registering IAgriPlant '%1$s' (%2$s)), with output '%3$s', with soil '%4$s'%5$s",
                     agriPlant.getPlantName(),
-                    (Configurator.verboseDebugging ? agriPlant.getPrimaryPlantTexture(1) : agriPlant.getId()),
+                    agriPlant.getId(),
                     ConversionUtils.ItemStackArrayToString(getPlantOutputs(agriPlant, true)),
-                    ConversionUtils.ItemStackArrayToString(getPlantSoils(agriPlant, false))));
+                    ConversionUtils.ItemStackArrayToString(getPlantSoils(agriPlant, false)),
+                    (Main.PROX == Main.SIDE.SERVER ? " " : agriPlant.getPrimaryPlantTexture(1))
+            ));
 
             plantMap.put(new SeedAgriItem(seed), agriPlant);
 
@@ -325,9 +325,10 @@ public class AgriClocheCompat {
         filterList = new ArrayList<>(Arrays.asList(Configurator.statAgricraftList));
         BelljarHandler.registerHandler(agricraftHandler);
         for (IAgriPlant plant : AgriApi.getPlantRegistry().all()) {
-            if (canRegister(plant)) {
+//            if (canRegister(plant)) {
                 agricraftHandler.register(plant);
-            }
+//            }
+            Main.log.info(" ");
         }
         Main.log.info("-------------------------------");
     }
@@ -388,9 +389,10 @@ public class AgriClocheCompat {
 
     private static boolean canRegister(IAgriPlant agriPlant) {
         String agriValue = null;
+
         try {
             agriValue = agriPlant.getSeed().getTagCompound().getString("agri_seed");
-        } catch (Exception e) {
+        } catch (Throwable e) {
             Main.log.error("AgriClocheCompat#canRegister: Seed does not have proper compound! Either a mod is incorrectly " +
                     "registering or Agricraft has changed! {" + agriPlant.getSeedName() + "}");
         }

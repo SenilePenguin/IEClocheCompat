@@ -19,6 +19,12 @@ public class Main {
     @SidedProxy(clientSide = Reference.CLIENT_PROXY_CLASS, serverSide = Reference.COMMON_PROXY_CLASS)
     public static CommonProxy proxy;
 
+    public enum SIDE {
+        CLIENT,
+        SERVER
+    }
+    public static SIDE PROX = null;
+
     @EventHandler
     public static void PreInit(FMLPreInitializationEvent event) {
         proxy.PreInit(event);

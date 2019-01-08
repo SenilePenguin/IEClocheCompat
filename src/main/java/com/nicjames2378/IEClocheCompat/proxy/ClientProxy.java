@@ -1,5 +1,6 @@
 package com.nicjames2378.IEClocheCompat.proxy;
 
+import com.nicjames2378.IEClocheCompat.Main;
 import com.nicjames2378.IEClocheCompat.utils.Reference;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -13,6 +14,7 @@ public class ClientProxy extends CommonProxy {
     @Override
     public void PreInit(FMLPreInitializationEvent event) {
         super.PreInit(event);
+        Main.PROX = Main.SIDE.CLIENT;
     }
 
     @Override
