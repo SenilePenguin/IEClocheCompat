@@ -55,7 +55,7 @@ public class CommonProxy {
                     " I do not know why, but this seems to make other seeds work again. Sorry for the inconvenience!"
             };
             for (String line : warning) {
-                e.player.sendMessage(new TextComponentString(ChatFormatting.DARK_AQUA + line));
+                e.player.sendMessage(new TextComponentString(ChatFormatting.DARK_PURPLE + line));
             }
         }
     }
