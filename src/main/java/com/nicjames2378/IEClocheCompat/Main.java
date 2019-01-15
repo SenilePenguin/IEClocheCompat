@@ -23,6 +23,7 @@ public class Main {
         CLIENT,
         SERVER
     }
+
     public static SIDE PROX = null;
 
     @EventHandler

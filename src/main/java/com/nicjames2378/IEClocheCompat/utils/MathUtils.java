@@ -24,4 +24,14 @@ public class MathUtils {
         }
         return (int)value;
     }
+
+    public static float roundToPortion(float coefficient, float value) {
+        return Math.round(value*coefficient)/coefficient;
+    }
+
+    public static boolean testChanceIn(int percentChance, int outOf) {
+        Random r = new Random();
+        // gives us an X in outOf chance, inclusive to both ends.
+        return r.nextInt(outOf + 1) + 1 <= percentChance;
+    }
 }

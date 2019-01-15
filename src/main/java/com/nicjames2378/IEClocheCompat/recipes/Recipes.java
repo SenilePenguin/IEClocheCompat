@@ -10,14 +10,24 @@ import com.nicjames2378.IEClocheCompat.utils.ModChecker;
 
 public class Recipes {
 
-    public static void initialize() {
+    public static void registerHandlers() {
+        if (ModChecker.AGRICRAFT && Configurator.integrationAgricraft) {
+            Main.log.info("Beginning HANDLERS registry");
+            AgriClocheCompat.registerHandler();
+        }
+    }
+
+    public static void initializeAgricraft() {
         //Have to do Agricraft compat first to prevent issues with mystical agradditions?
         if (ModChecker.AGRICRAFT && Configurator.integrationAgricraft) {
             Main.log.info("Beginning AGRICRAFT registry");
             AgriClocheCompat.initialize();
         }
-
-        if (ModChecker.MYSTICAL_AGGRADITIONS && Configurator.integrationMysticalAgraditions) {
+    }
+    public static void initialize() {
+        if (!ModChecker.AGRICRAFT && ModChecker.MYSTICAL_AGGRADITIONS && Configurator.integrationMysticalAgraditions) {
+            //Disabling this while Agricraft is installed mostly solves the issue where NBTs aren't used.
+            //Doesn't fix Vanilla or IE seeds though. Pretty sure that needs fixed on Blu's side... somewhere
             Main.log.info("Beginning MYSTICAL_AGGRADITIONS registry");
             registerMysticalAgradditionsCompat();
         }

@@ -1,6 +1,7 @@
 package com.nicjames2378.IEClocheCompat.CRUD.compats.AgriCraft;
 
 import blusunrize.immersiveengineering.api.tool.BelljarHandler;
+import blusunrize.immersiveengineering.common.IEContent;
 import blusunrize.immersiveengineering.common.items.ItemMaterial;
 import com.infinityraider.agricraft.api.v1.AgriApi;
 import com.infinityraider.agricraft.api.v1.plant.IAgriPlant;
@@ -9,17 +10,14 @@ import com.nicjames2378.IEClocheCompat.Main;
 import com.nicjames2378.IEClocheCompat.config.Configurator;
 import com.nicjames2378.IEClocheCompat.utils.ConversionUtils;
 import com.nicjames2378.IEClocheCompat.utils.MathUtils;
+import com.nicjames2378.IEClocheCompat.utils.RenderUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.properties.IProperty;
 import net.minecraft.block.properties.PropertyInteger;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockRendererDispatcher;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -30,7 +28,6 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import org.lwjgl.opengl.GL11;
 
 import java.util.*;
 
@@ -50,6 +47,10 @@ public class AgriClocheCompat {
             itemSeed = seed.getItem();
         }
 
+        private String getAgriSeed() {
+            return agriSeed;
+        }
+
         @Override
         public boolean equals(Object other) {
             if (this == other) return true;
@@ -65,13 +66,24 @@ public class AgriClocheCompat {
         }
     }
 
+    static class MR {
+        public byte method;
+        public ItemStack stack;
+
+        public MR(byte method, ItemStack stack) {
+            this.method = method;
+            this.stack = stack;
+        }
+    }
+
     private static ArrayList<String> filterList;
+    private static HashMap<String, MR> manualRenders = new HashMap<>();
 
     //Map seed ItemStacks to their corresponding IAgriPlants to make things easier
     private static HashMap<SeedAgriItem, IAgriPlant> plantMap = new HashMap();
     private static HashMap<IAgriPlant, ItemStack[]> soilMap = new HashMap();
     private static HashMap<IAgriPlant, ItemStack[]> outputMap = new HashMap<>();
-    private static HashMap<IAgriPlant, IBlockState[]> renderMap = new HashMap<>();
+    //private static HashMap<IAgriPlant, IBlockState[]> renderMap = new HashMap<>();
 
     static class AgricraftCropHandler implements BelljarHandler.IPlantHandler {
         private HashSet<IAgriPlant> validSeeds = new HashSet<>();
@@ -134,12 +146,12 @@ public class AgriClocheCompat {
                     if (ItemStack.areItemsEqual(outputStack, new ItemStack(Items.POTATO))) { //if potato, use gains
                         retVal.add(new ItemStack(outputStack.getItem(), (int) Math.ceil(getGainYield(seedGain) * 0.7f), outputStack.getMetadata())); //Mutiplied to reduce amount. Might remove this.
                     } else if (ItemStack.areItemsEqual(outputStack, new ItemStack(Items.POISONOUS_POTATO))) { //if poison tater, use 1 in x chance
-                        if (testChanceIn(1, 50)) {
+                        if (MathUtils.testChanceIn(1, 50)) {
                             retVal.add(new ItemStack(outputStack.getItem(), 1, outputStack.getMetadata())); //Copies vanilla's 2% chance for poisonous tater
                         }
                     }
 
-                } else if (seedNBTString.contains("immersiveengineering:hemp_plant")) { //if immersiveengineering hemp
+                } else if (seedNBTString.contains("immersiveengineering")) { //if immersiveengineering hemp
                     if (outputStack.getItem() instanceof ItemMaterial) { //if is, use gains
                         retVal.add(new ItemStack(outputStack.getItem(), getGainYield(seedGain), outputStack.getMetadata()));
                     }
@@ -149,8 +161,8 @@ public class AgriClocheCompat {
                 }
             }
 
-            if (testChanceIn(1, Configurator.statAgricraftSeedDuplicationChance)) {
-                retVal.add(new ItemStack(seed.getItem(), 1, seed.getMetadata())); //Give chance for another seed
+            if (MathUtils.testChanceIn(1, Configurator.statAgricraftSeedDuplicationChance)) {
+                retVal.add(seed.copy()); //Give chance for another seed
             }
 
             return retVal.toArray(new ItemStack[0]);
@@ -159,78 +171,65 @@ public class AgriClocheCompat {
         @SideOnly(Side.CLIENT)
         @Override
         public boolean overrideRender(ItemStack seed, ItemStack soil, float growth, TileEntity tile, BlockRendererDispatcher blockRenderer) {
-            boolean DEBUG = false;
+            //TODO: FIX RENDERING
 
-            //TODO: FIX RENDERING; Should check if blockstate is an anvil and, if so, render plant custom-ly
-            if (DEBUG) {
-                Tessellator tessellator = Tessellator.getInstance();
-                BlockPos blockPos = new BlockPos(0, 0, 0);
-                ResourceLocation resourceLocation = new ResourceLocation("agricraft", "textures/blocks/crop_aurigold2.png");
-
-                renderLayer(blockPos, resourceLocation, tessellator);
+            IAgriPlant plant = plantMap.get(new SeedAgriItem(seed));
+            if (testContains(plant.getId(), "immersiveengineering")) {
+                currentState = new IBlockState[]{IEContent.blockCrop.getDefaultState()};
                 return true;
+            } else if (testContains(plant.getId(), "mysticalagriculture") || testContains(plant.getId(), "mysticalagradditions")) {
+                currentState = new IBlockState[]{Block.getBlockFromName(plant.getId().replace("plant", "crop")).getDefaultState()};
+                return false;
+            } else if (manualRenders.containsKey(plant.getPlantName().toLowerCase())) {
+                MR mr = manualRenders.get(plant.getPlantName().toLowerCase());
+                switch (mr.method) {
+                    case (byte) 0: {
+                        currentState = BelljarHandler.cropHandler.getRenderedPlant(mr.stack, soil, growth, tile);
+                        return true;
+                    }
+                    case (byte) 1: { //Bugged; Not used. TODO: Fix!!!
+                        currentState = BelljarHandler.stemHandler.getRenderedPlant(mr.stack, soil, growth, tile);
+                        return true;
+                    }
+                    case (byte) 2: { //Bugged; Not used.
+                        currentState = BelljarHandler.stackingHandler.getRenderedPlant(mr.stack, soil, growth, tile);
+                        return true;
+                    }
+                }
+            } else {
+                if (Configurator.cfgEnableExperiementalRenderer) {
+                    try {
+                        Tessellator tessellator = Tessellator.getInstance();
+                        BlockPos blockPos = new BlockPos(0, 0, 0);
+
+                        int index = (int) (MathUtils.roundToPortion(8f, growth) * 8);
+                        ResourceLocation resourceLocation = new ResourceLocation("agricraft", "textures/" + plant.getPrimaryPlantTexture(index).toString().split(":")[1] + ".png");
+
+//                        if (Minecraft.getMinecraft().world.getTotalWorldTime() % 12 == 1) {
+//                            Main.log.info(MathUtils.roundToPortion(8f, growth) + "*8=" + MathUtils.roundToPortion(8f, growth) * 8 + "; " + index + "; growth=" + growth + "; " + resourceLocation.toString());
+//                        }
+                        RenderUtils.renderAgri(blockPos, resourceLocation, tessellator);
+
+                        //renderLayer(blockPos, resourceLocation, tessellator);
+                        return true;
+                    } catch (Exception e) {
+                        Main.log.error("ERROR RENDERING!! \n");
+                        e.printStackTrace();
+                    }
+                }
             }
+
+            currentState = new IBlockState[]{Blocks.ANVIL.getDefaultState()};
             return false;
         }
 
-        @SideOnly(Side.CLIENT)
-        public void renderLayer(BlockPos blockPos, ResourceLocation resourceLocation, Tessellator tessellator) {
-            GlStateManager.pushMatrix();
-            GlStateManager.enableAlpha();
-            GlStateManager.enableBlend();
-
-            Minecraft.getMinecraft().getTextureManager().bindTexture(resourceLocation);
-            BufferBuilder bufferBuilder = tessellator.getBuffer();
-
-            bufferBuilder.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
-            bufferBuilder.setTranslation(blockPos.getX(), blockPos.getY(), blockPos.getZ());
-
-            final float PX = 1f / 16f;
-            final float YOFF = 1 * PX;
-            final float BORDER = 1.9f * PX;
-            final float MAXHEIGHT = 10 * PX;
-            final float LOW = 5.9f * PX;
-            float actualHeight = (MAXHEIGHT * 3) + YOFF;
-
-            //UP face
-//            bufferBuilder.pos(BORDER, actualHeight, BORDER).tex(0, 0).color(1f, 1f, 1f, 0.8f).endVertex();
-//            bufferBuilder.pos(1 - BORDER, actualHeight, BORDER).tex(1, 0).color(1f, 1f, 1f, 0.8f).endVertex();
-//            bufferBuilder.pos(1 - BORDER, actualHeight, 1 - BORDER).tex(1, 1).color(1f, 1f, 1f, 0.8f).endVertex();
-//            bufferBuilder.pos(BORDER, actualHeight, 1 - BORDER).tex(0, 1).color(1f, 1f, 1f, 0.8f).endVertex();
-
-            //UP face
-//            bufferBuilder.pos(0, 0, 0).tex(0, 0).color(0.5f, 0.5f, 0.5f, 0.8f).endVertex();
-//            bufferBuilder.pos(0, 1, 0).tex(1, 0).color(0.5f, 0.5f, 0.5f, 0.8f).endVertex();
-//            bufferBuilder.pos(0, 1, 1).tex(1, 1).color(0.5f, 0.5f, 0.5f, 0.8f).endVertex();
-//            bufferBuilder.pos(0, 0, 1).tex(0, 1).color(0.5f, 0.5f, 0.5f, 0.8f).endVertex();
-
-//            BlockRendererDispatcher blockrendererdispatcher = Minecraft.getMinecraft().getBlockRendererDispatcher();
-//            blockrendererdispatcher.getBlockModelRenderer().renderModel(Minecraft.getMinecraft().world, blockrendererdispatcher.getModelForState(stateToRender), stateToRender, position, bufferBuilder, false);
-
-
-            //UP face
-//            bufferBuilder.pos(BORDER, actualHeight, BORDER).tex(0, 0).color(1f, 1f, 1f, 0.8f).endVertex();
-//            bufferBuilder.pos(1 - BORDER, actualHeight, BORDER).tex(1, 0).color(1f, 1f, 1f, 0.8f).endVertex();
-//            bufferBuilder.pos(1 - BORDER, actualHeight, 1 - BORDER).tex(1, 1).color(1f, 1f, 1f, 0.8f).endVertex();
-//            bufferBuilder.pos(BORDER, actualHeight, 1 - BORDER).tex(0, 1).color(1f, 1f, 1f, 0.8f).endVertex();
-
-            //UP face
-            //UVs measure from top-left. Blocks measure from top-back-left.
-            bufferBuilder.pos(0.2f, 0, 0).tex(0, 0).color(1f, 1f, 1f, 0.8f).endVertex();
-            bufferBuilder.pos(0.2f, 1, 0).tex(1, 0).color(1f, 1f, 1f, 0.8f).endVertex();
-            bufferBuilder.pos(0.2f, 1, 1).tex(1, 1).color(1f, 1f, 1f, 0.8f).endVertex();
-            bufferBuilder.pos(0.2f, 0, 1).tex(0, 1).color(1f, 1f, 1f, 0.8f).endVertex();
-
-            tessellator.draw();
-
-            //GlStateManager.enableLighting();
-            GlStateManager.popMatrix();
-        }
+        private static IBlockState[] currentState;
 
         @Override
         @SideOnly(Side.CLIENT)
         public IBlockState[] getRenderedPlant(ItemStack seed, ItemStack soil, float growth, TileEntity tile) {
-            IBlockState[] states = renderMap.get(plantMap.get(new SeedAgriItem(seed)));
+            //TODO: Clean this up?
+            IBlockState[] states = currentState; //(renderMap.get(plantMap.get(new SeedAgriItem(seed))) == null ? new IBlockState[]{Blocks.ANVIL.getDefaultState()} : renderMap.get(plantMap.get(new SeedAgriItem(seed))));
             if (states != null) {
                 IBlockState[] ret = new IBlockState[states.length];
                 for (int i = 0; i < states.length; i++)
@@ -266,42 +265,11 @@ public class AgriClocheCompat {
                     (Main.PROX == Main.SIDE.SERVER ? " " : agriPlant.getPrimaryPlantTexture(1))
             ));
 
-            plantMap.put(new SeedAgriItem(seed), agriPlant);
-
             getSeedSet().add(agriPlant);
+            plantMap.put(new SeedAgriItem(seed), agriPlant);
             soilMap.put(agriPlant, getPlantSoils(agriPlant, false));
             outputMap.put(agriPlant, getPlantOutputs(agriPlant, false));
-
-            //TODO: FIX RENDERING
-            /*
-            mysticalagriculture:blocks/crop1
-            agricraft:blocks/crop_niccissus1
-            immersiveengineering:blocks/hemp_b0
-             */
-
-
-            //if agriplant ID contains each mod name, render special (these are just textures. make sure not to use on server side.
-            //      myst agric uses crop 0-4 and the ID_crop
-            //      agricraft uses crop_ID 0-4 (special!)
-            //      immersive engineering ..... works? O.o
-
-
-            try {
-                renderMap.put(agriPlant, new IBlockState[]{
-                        Block.getBlockFromName(agriPlant.getId().replace("plant", "crop")).getDefaultState()
-                });
-            } catch (Exception e) {
-                Main.log.error("Could not register renderer! One will be dynamically generated.");
-                renderMap.put(agriPlant, new IBlockState[]{
-                        Blocks.ANVIL.getDefaultState()
-                });
-            }
-        }
-
-        public boolean testChanceIn(int percentChance, int outOf) {
-            Random r = new Random();
-            // gives us an X in outOf chance, inclusive to both ends.
-            return r.nextInt(outOf + 1) + 1 <= percentChance;
+            //renderMap.put(agriPlant, getPlantRender(agriPlant));
         }
 
         private int getGainYield(int gainValue) {
@@ -312,7 +280,7 @@ public class AgriClocheCompat {
             int normGain = Math.round(MathUtils.normalizeToRange(1, 10, 0, 2, gainValue));
 
             //Clamped to prevent possible issues with negative or very high values due to NBT exploits. Do note,
-            //  raising this value in the config can allow for 'super' crops from pack rewards
+            //  raising this value in the config can allow for 'super' crops from pack rewards if desired
             return MathUtils.clampValue(1, Configurator.statAgricraftGainLimitHard, ((gainValue * Configurator.statAgricraftGainLimitMultiplier) + (MathUtils.getAmountToAddOrSubtract(normGain + 1, normGain) * Configurator.statAgricraftGainLimitMultiplier) * Configurator.statAgricraftGainLimitMultiplier));
         }
     }
@@ -320,17 +288,35 @@ public class AgriClocheCompat {
     public static AgricraftCropHandler agricraftHandler = new AgricraftCropHandler() {
     };
 
-    public static void initialize() {
-        Main.log.info("-------------------------------");
-        filterList = new ArrayList<>(Arrays.asList(Configurator.statAgricraftList));
+    public static void registerHandler() {
         BelljarHandler.registerHandler(agricraftHandler);
+    }
+
+    public static void initialize() {
+        filterList = new ArrayList<>(Arrays.asList(Configurator.statAgricraftList));
+
+        manualRenders.put("Wheat".toLowerCase(), new MR((byte) 0, new ItemStack(Items.WHEAT_SEEDS)));
+        manualRenders.put("Potato".toLowerCase(), new MR((byte) 0, new ItemStack(Items.POTATO)));
+        manualRenders.put("Carrot".toLowerCase(), new MR((byte) 0, new ItemStack(Items.CARROT)));
+        manualRenders.put("Beets".toLowerCase(), new MR((byte) 0, new ItemStack(Items.BEETROOT_SEEDS)));
+        manualRenders.put("Nether Wart".toLowerCase(), new MR((byte) 0, new ItemStack(Items.NETHER_WART)));
+        //manualRenders.put("Pumpkin".toLowerCase(), new MR((byte) 1, new ItemStack(Items.PUMPKIN_SEEDS)));
+        //manualRenders.put("Melon".toLowerCase(), new MR((byte) 1, new ItemStack(Items.MELON_SEEDS)));
+        //manualRenders.put("Sugarcane".toLowerCase(), new MR((byte) 2, new ItemStack(Items.REEDS)));
+        //manualRenders.put("Cactus".toLowerCase(), new MR((byte) 2, new ItemStack(Blocks.CACTUS)));
+        manualRenders.put("Red Mushroom".toLowerCase(), new MR((byte) 0, new ItemStack(Blocks.RED_MUSHROOM)));
+        manualRenders.put("Brown Mushroom".toLowerCase(), new MR((byte) 0, new ItemStack(Blocks.BROWN_MUSHROOM)));
+
         for (IAgriPlant plant : AgriApi.getPlantRegistry().all()) {
-//            if (canRegister(plant)) {
+            if (canRegister(plant)) {
                 agricraftHandler.register(plant);
-//            }
-            Main.log.info(" ");
+            }
         }
         Main.log.info("-------------------------------");
+    }
+
+    private static boolean testContains(String string, String contains) {
+        return string.toLowerCase().contains(contains.toLowerCase());
     }
 
     private static ItemStack[] getPlantOutputs(IAgriPlant agriPlant, boolean showDebug) {
@@ -390,6 +376,11 @@ public class AgriClocheCompat {
     private static boolean canRegister(IAgriPlant agriPlant) {
         String agriValue = null;
 
+        //Don't register weeds. They're dumb anyways, and why would you even want to? O.o
+        if (testContains(agriPlant.getId(), "weed")) {
+            return false;
+        }
+
         try {
             agriValue = agriPlant.getSeed().getTagCompound().getString("agri_seed");
         } catch (Throwable e) {
@@ -398,7 +389,7 @@ public class AgriClocheCompat {
         }
 
         // If it's not in the proper format, reject it
-        if (agriValue == null || agriValue.isEmpty() || agriValue == "") {
+        if (agriValue == null || agriValue.isEmpty() || agriValue.equals("")) {
             return false;
         }
 
@@ -416,7 +407,7 @@ public class AgriClocheCompat {
             return false;
         }
 
-        // If it's somehow survived, keep it. It can be our pet.
+        // If it's somehow survived, keep it. It can be our pet :D
         return true;
     }
 }

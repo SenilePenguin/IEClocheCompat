@@ -47,6 +47,7 @@ public class Configurator {
     public static boolean fertMysticalAgricultureMysticalFertilizer;
     public static float statMysticalAgricultureMysticalFertilizerStrength;
 
+    public static boolean cfgEnableExperiementalRenderer;
     public static int statAgricraftSeedDuplicationChance;
     public static float statAgricraftStrengthMultiplier;
     public static int statAgricraftGainLimitHard;
@@ -60,6 +61,8 @@ public class Configurator {
             Configurator.syncConfig();
         }
     }
+
+
 
     public static void init(File file) {
         config = new Configuration(file);
@@ -121,6 +124,7 @@ public class Configurator {
         statMysticalAgricultureMysticalFertilizerStrength = config.getFloat("mystical_fertilizer_strength", category, 1.65f, 0f, 5f, "Mystical Agriculture mystical fertilizer strength. (Note: Bonemeal defaults to 1.25)");
 
         category = "agricraft";
+        cfgEnableExperiementalRenderer = config.getBoolean("agricraft_enable_experimental_renderer", category, false, "Whether to use the experimental renderer or not. Warning: may cause visual glitches, strobing images, and/or other unsightly artifacting. \nPlease do NOT use if epileptic or prone to headaches from flickering lights!!");
         config.addCustomCategoryComment(category, "Enable or disable specific compatibilities with Garden Cloches."
                 + "\nThese settings have no effect is the mod's integration is disabled in the global section.");
         statAgricraftSeedDuplicationChance = config.getInt("agricraft_seed_duplication_chance", category, 50, 0, 1000, "The chance for the cloche to yield another seed. \nChance is 1 out of X, where 10 is a 10% chance and 50 is a 2% chance. \nSetting this value to 0 will disable seed duplication.");
