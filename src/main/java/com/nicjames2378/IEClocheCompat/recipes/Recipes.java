@@ -1,25 +1,40 @@
 package com.nicjames2378.IEClocheCompat.recipes;
 
 import com.nicjames2378.IEClocheCompat.CRUD.IEClocheCompat;
-import com.nicjames2378.IEClocheCompat.CRUD.compats.compAgricraft;
+import com.nicjames2378.IEClocheCompat.CRUD.compats.AgriCraft.AgriClocheCompat;
 import com.nicjames2378.IEClocheCompat.CRUD.formats.CropFormat;
 import com.nicjames2378.IEClocheCompat.CRUD.formats.FertilizerFormat;
+import com.nicjames2378.IEClocheCompat.Main;
 import com.nicjames2378.IEClocheCompat.config.Configurator;
 import com.nicjames2378.IEClocheCompat.utils.ModChecker;
 
 public class Recipes {
 
+    public static void registerHandlers() {
+        if (ModChecker.AGRICRAFT && Configurator.integrationAgricraft) {
+            Main.log.info("Beginning HANDLERS registry");
+            AgriClocheCompat.registerHandler();
+        }
+    }
+
+    public static void initializeAgricraft() {
+        //Have to do Agricraft compat first to prevent issues with mystical agradditions?
+        if (ModChecker.AGRICRAFT && Configurator.integrationAgricraft) {
+            Main.log.info("Beginning AGRICRAFT registry");
+            AgriClocheCompat.initialize();
+        }
+    }
     public static void initialize() {
-        if (ModChecker.MYSTICAL_AGGRADITIONS && Configurator.integrationMysticalAgraditions) {
+        if (!ModChecker.AGRICRAFT && ModChecker.MYSTICAL_AGGRADITIONS && Configurator.integrationMysticalAgraditions) {
+            //Disabling this while Agricraft is installed mostly solves the issue where NBTs aren't used.
+            //Doesn't fix Vanilla or IE seeds though. Pretty sure that needs fixed on Blu's side... somewhere
+            Main.log.info("Beginning MYSTICAL_AGGRADITIONS registry");
             registerMysticalAgradditionsCompat();
         }
 
         if (ModChecker.MAGICAL_CROPS && Configurator.integrationMagicalCrops) {
+            Main.log.info("Beginning MAGICAL_CROPS registry");
             registerMagicalCropsCompat();
-        }
-
-        if (ModChecker.AGRICRAFT && Configurator.integrationAgricraft) {
-            compAgricraft.initialize();
         }
     }
 
@@ -41,7 +56,7 @@ public class Recipes {
     }
 
     private static void registerMysticalAgricultureCompat() {
-        IEClocheCompat.registerFertilizer(new FertilizerFormat("mysticalagriculture:mystical_fertilizer", Configurator.fertMysticalAgricultureMysticalFertilizerStrength).setCondition(Configurator.fertMysticalAgricultureMysticalFertilizer));
+        IEClocheCompat.registerFertilizer(new FertilizerFormat("mysticalagriculture:mystical_fertilizer", Configurator.statMysticalAgricultureMysticalFertilizerStrength).setCondition(Configurator.fertMysticalAgricultureMysticalFertilizer));
     }
 
     private static void registerMagicalCropsCompat() {

@@ -12,6 +12,7 @@ public class Configurator {
 
     // Increment this is config changes make it non-backwards compatible
     public static int version = 1;
+    public static boolean verboseDebugging;
 
     public static boolean integrationMagicalCrops;
     public static boolean integrationMysticalAgraditions;
@@ -44,11 +45,15 @@ public class Configurator {
     public static boolean seedMysticalAgradditionsAwakenedDraconium;
 
     public static boolean fertMysticalAgricultureMysticalFertilizer;
-    public static float fertMysticalAgricultureMysticalFertilizerStrength;
+    public static float statMysticalAgricultureMysticalFertilizerStrength;
 
-    public static float seedAgricraftStrengthModifier;
-    public static String seedAgricraftListType;
-    public static String[] seedAgricraftList;
+    public static boolean cfgEnableExperiementalRenderer;
+    public static int statAgricraftSeedDuplicationChance;
+    public static float statAgricraftStrengthMultiplier;
+    public static int statAgricraftGainLimitHard;
+    public static float statAgricraftGainLimitMultiplier;
+    public static String statAgricraftListType;
+    public static String[] statAgricraftList;
 
     @SubscribeEvent
     public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent eventArgs) {
@@ -56,6 +61,8 @@ public class Configurator {
             Configurator.syncConfig();
         }
     }
+
+
 
     public static void init(File file) {
         config = new Configuration(file);
@@ -69,6 +76,7 @@ public class Configurator {
         config.addCustomCategoryComment(category, "DO NOT CHANGE CONFIGS BELOW!"
                 + "\n Changes could result in deleted configs, corruption, or other indesired side-effects!");
         version = config.getInt("version", category, version, 0, 1000, "Internal versioning information. Do not change!");
+        verboseDebugging = config.getBoolean("verboseDebugging", category, false, "Whether verbose debugging should be enabled. Recommended to keep off as it can bloat logs and cause other unintended side effects in some cases. \nDisable this if you experience any bugs!");
 
         category = "global mod integrations";
         config.addCustomCategoryComment(category, "Enable or disable compatibility with other mods."
@@ -113,14 +121,18 @@ public class Configurator {
         config.addCustomCategoryComment(category, "Enable or disable specific compatibilities with Garden Cloches."
                 + "\nThese settings have no effect is the mod's integration is disabled in the global section.");
         fertMysticalAgricultureMysticalFertilizer = config.getBoolean("mystical_fertilizer", category, true, "Mystical Agriculture mystical fertilizer enabled?");
-        fertMysticalAgricultureMysticalFertilizerStrength = config.getFloat("mystical_fertilizer_strength", category, 1.65f, 0f, 5f, "Mystical Agriculture mystical fertilizer strength. (Note: Bonemeal defaults to 1.25)");
+        statMysticalAgricultureMysticalFertilizerStrength = config.getFloat("mystical_fertilizer_strength", category, 1.65f, 0f, 5f, "Mystical Agriculture mystical fertilizer strength. (Note: Bonemeal defaults to 1.25)");
 
         category = "agricraft";
+        cfgEnableExperiementalRenderer = config.getBoolean("agricraft_enable_experimental_renderer", category, false, "Whether to use the experimental renderer or not. Warning: may cause visual glitches, strobing images, and/or other unsightly artifacting. \nPlease do NOT use if epileptic or prone to headaches from flickering lights!!");
         config.addCustomCategoryComment(category, "Enable or disable specific compatibilities with Garden Cloches."
                 + "\nThese settings have no effect is the mod's integration is disabled in the global section.");
-        seedAgricraftStrengthModifier = config.getFloat("agricraft_strength_modifier", category, 0.15f, 0, 1, "How much the Agri-Crop's growth value influences it's growth speed in the garden cloche. \nHigher values mean more speed boost. Setting to 0 effectively disables. \nFormula for the math-y people: (.003125 * (FERTILIZER + ((THIS * SEED_GROWTH_LEVEL) - THIS)))");
-        seedAgricraftListType = config.getString("agricraft_list_type", category, "BLACK", "Whether the list should be a whitelist or a blacklist. A whitelist requires a crop to be listed, while a blacklist explicitly checks that it is NOT listed. \nAccepted values: WHITE, BLACK", new String[]{"WHITE", "BLACK"});
-        seedAgricraftList = config.getStringList("agricraft_list", category, new String[]{}, "Agricraft crops that will not be integrated. \nFilter uses the plant's ID in Agricraft's json configs. Use an asterisk (*) after the colon to disable all seeds from the category. \nExample: Disable Pumpkin = \"vanilla:pumpkin_plant\" \nExample: Disable all resource crops = \"resource:*\"");
+        statAgricraftSeedDuplicationChance = config.getInt("agricraft_seed_duplication_chance", category, 50, 0, 1000, "The chance for the cloche to yield another seed. \nChance is 1 out of X, where 10 is a 10% chance and 50 is a 2% chance. \nSetting this value to 0 will disable seed duplication.");
+        statAgricraftStrengthMultiplier = config.getFloat("agricraft_strength_modifier", category, 0.15f, 0, 1, "How much the Agri-Crop's growth value influences it's growth speed in the garden cloche. \nHigher values mean more speed boost. Setting to 0 effectively disables. \nFormula for the math-y people: (.003125 * (FERTILIZER + ((THIS * SEED_GROWTH_LEVEL) - THIS)))");
+        statAgricraftGainLimitHard = config.getInt("agricraft_gain_limit_hard", category, 12, 10, 64, "Sets a hard 'cap' to the maximum yield that can be achieved from a max tier crop. \nHigher values mean crops can give more product, but the amount lost is unaffected. Recommended to change the loss limit if changing this value, as otherwise yields will be truncated.");
+        statAgricraftGainLimitMultiplier = config.getFloat("agricraft_gain_limit_modifier", category, 1.0f, 1, 10, "How much the Agri-Crop's gain value influences it's output amount in the garden cloche. \nHigher values mean more output per growth cycle. \nFormula can be found on the GitHub at com.nicjames2378.IEClocheCompat.CRUD.compats.AgriCraft.AgriClocheCompat.AgricraftCropHandler.getGainYield");
+        statAgricraftListType = config.getString("agricraft_list_type", category, "BLACK", "Whether the list should be a whitelist or a blacklist. A whitelist requires a crop to be listed, while a blacklist explicitly checks that it is NOT listed. \nAccepted values: WHITE, BLACK", new String[]{"WHITE", "BLACK"});
+        statAgricraftList = config.getStringList("agricraft_list", category, new String[]{}, "Agricraft crops that will not be integrated. \nFilter uses the plant's ID in Agricraft's json configs. Use an asterisk (*) after the colon to disable all seeds from the category. \nExample: Disable Pumpkin = \"vanilla:pumpkin_plant\" \nExample: Disable all resource crops = \"resource:*\"");
 
         if (config.hasChanged()) {
             config.save();
