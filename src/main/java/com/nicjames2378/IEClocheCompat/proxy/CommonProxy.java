@@ -25,7 +25,7 @@ import java.io.File;
 public class CommonProxy {
     public void PreInit(FMLPreInitializationEvent event) {
         Main.PROX = Main.SIDE.SERVER;
-        Configurator.init(new File(event.getModConfigurationDirectory() + "\\" + Reference.MOD_ID, Reference.MOD_ID + ".cfg"));
+        Configurator.init(new File(event.getModConfigurationDirectory() + File.separator + Reference.MOD_ID, Reference.MOD_ID + ".cfg"));
 
         MinecraftForge.EVENT_BUS.register(new Configurator());
     }
